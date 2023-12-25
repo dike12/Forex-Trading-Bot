@@ -21,7 +21,7 @@ To use the Forex Trading Bot, follow these steps:
 
 1. **Clone the Repository**: Download the bot's code from the repository.
    ```bash
-   git clone https://github.com/yourusername/forex-trading-bot.git
+   git clone https://github.com/dike12/Forex-Trading-Bot
 2. **Install Dependencies**: Navigate to the bot's directory and install the necessary dependencies
    ```bash
    cd forex-trading-bot
