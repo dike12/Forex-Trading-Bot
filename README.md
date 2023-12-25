@@ -5,6 +5,8 @@ Welcome to the Forex Trading Bot, an automated solution for currency trading on 
 
 Currently, our bot focuses exclusively on the EUR/USD currency pair, leveraging a well-defined strategy to make trading decisions. We are committed to continually improving and expanding its capabilities.
 
+For more detailed information, see [Documentation.md](Documentation.md).
+
 ## Upcoming Updates
 We're actively working on enhancing the Forex Trading Bot with the following upcoming features:
 - **Support for Multiple Currency Pairs**: In future updates, we plan to include support for a broader range of currency pairs, offering more versatility in trading options.
