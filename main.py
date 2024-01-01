@@ -7,25 +7,46 @@ from oandapyV20.contrib.requests import MarketOrderRequest, TakeProfitDetails, S
 from oanda_candles import Pair, Gran, CandleClient
 from API_key import key, id
 
-# Define a function to generate trading signals based on price patterns
-def signal_generator(df):
-    # Ensure the DataFrame has exactly two rows (two candles)
+"""def signal_generator(df):
     if len(df) != 2:
         return 0
 
-    # Extract Open and Close prices for current and previous candles
+    # Retrieve open and close prices for previous and current candles
+    open_prev, close_prev = df.Open.iloc[0], df.Close.iloc[0]
+    open_curr, close_curr = df.Open.iloc[1], df.Close.iloc[1]
+
+    # Bearish signal: previous candle bullish and current candle bearish
+    if close_prev > open_prev and close_curr < open_curr:
+        return 1
+
+    # Bullish signal: previous candle bearish and current candle bullish
+    elif close_prev < open_prev and close_curr > open_curr:
+        return 2
+
+    return 0  # No clear pattern"""
+
+
+# Define a function to generate trading signals based on price patterns
+def signal_generator(df, tolerance=0.0001):
+    if len(df) != 2:
+        return 0
+
     open = df.Open.iloc[1]
     close = df.Close.iloc[1]
     previous_open = df.Open.iloc[0]
     previous_close = df.Close.iloc[0]
 
-    # Define bearish and bullish patterns and return corresponding signals
-    if(open > close and previous_open < previous_close and close < previous_open and open >= previous_close):
+    # Adjusted bearish pattern condition
+    if(open > close and previous_open < previous_close and close < previous_open  and open >= previous_close):
         return 1  # Bearish signal
+
+    # Adjusted bullish pattern condition
     elif(open < close and previous_open > previous_close and close > previous_open and open <= previous_close):
         return 2  # Bullish signal
+
     else:
         return 0  # No clear pattern
+
 
 # Function to retrieve the last 'n' candles for EUR/USD with 15-minute granularity
 def get_candles(n):
@@ -49,7 +70,7 @@ def trading_job():
     i = 0
     for candle in candles:
         dfstream.loc[i, ["Open"]] = float(str(candle.bid.o))
-        dfstream.loc[i, ["Close"]] = float(str(candle.bid.o))
+        dfstream.loc[i, ["Close"]] = float(str(candle.bid.c))
         dfstream.loc[i, ["High"]] = float(str(candle.bid.h))
         dfstream.loc[i, ["Low"]] = float(str(candle.bid.l))
         i += 1
@@ -62,6 +83,7 @@ def trading_job():
 
     # Generate a trading signal based on the latest two candles
     signal = signal_generator(dfstream.iloc[:-1, :])
+    print("signal: " + str(signal))
 
     # Set up API client using OANDA's API
     accountID = id
@@ -86,6 +108,7 @@ def trading_job():
         r = orders.OrderCreate(accountID, data=mo.data)
         rv = client.request(r)
         print(rv)
+
     elif signal == 2:  # Buy signal
         mo = MarketOrderRequest(instrument="EUR_USD", units=1000, takeProfitOnFill=TakeProfitDetails(price=TPBuy).data, stopLossOnFill=StopLossDetails(price=SLBuy).data)
         r = orders.OrderCreate(accountID, data=mo.data)
@@ -98,4 +121,5 @@ trading_job()
 # Set up a scheduler to run the trading job at specific times
 scheduler = BlockingScheduler()
 scheduler.add_job(trading_job, "cron", day_of_week="mon-fri", hour="00-23", minute="1,16,31,46", start_date="2023-12-27 12:00:00", timezone="America/Toronto")
+#scheduler.add_job(trading_job, "cron", minute="*/5", timezone="America/Toronto")
 scheduler.start()  # Start the scheduler
